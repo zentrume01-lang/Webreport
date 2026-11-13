@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleGuard — Laporkan Penipuan Telegram</title>
+    <!-- Font & Icon -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* === RESET & VARIABEL === */
+        :root {
+            --bg-body: #0b1120;       /* Latar belakang gelap */
+            --bg-card: #151e32;       /* Latar kartu */
+            --bg-input: #0f172a;      /* Latar input */
+            --primary: #229ED9;       /* Biru Telegram */
+            --primary-hover: #1a8bbf;
+            --text-main: #f8fafc;     /* Teks utama */
+            --text-muted: #94a3b8;    /* Teks abu */
+            --border: #1e293b;        /* Garis pembatas */
+            --danger: #ef4444;
+            --success: #10b981;
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; justify-content: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .container {
+            width: 100%; max-width: 600px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        /* === HEADER === */
+        .header {
+            display: flex; align-items: center; gap: 12px;
+            padding-bottom: 20px; border-bottom: 1px solid var(--border);
+        }
+        .logo-icon {
+            width: 45px; height: 45px; background: var(--primary);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: white;
+        }
+        .header-text h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+        .header-text p { font-size: 13px; color: var(--text-muted); }
+
+        /* === CARD UMUM === */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .card h2 i { color: var(--primary); }
+
+        /* === FORM === */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 12px; font-weight: 500;
+            color: var(--text-muted); margin-bottom: 6px;
+        }
+        .form-control {
+            width: 100%; padding: 12px 14px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-main);
+            font-size: 14px; outline: none; transition: 0.2s;
+        }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(34,158,217,0.15); }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px; padding: 24px;
+            text-align: center; cursor: pointer;
+            transition: 0.2s; position: relative;
+        }
+        .upload-area:hover { border-color: var(--primary); background: rgba(34,158,217,0.05); }
+        .upload-area input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer;
+        }
+        .upload-area i { font-size: 28px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+        .upload-area span { font-size: 13px; color: var(--text-muted); }
+        .upload-preview {
+            margin-top: 12px; display: none;
+            border-radius: 8px; overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .upload-preview img { width: 100%; height: auto; display: block; }
+
+        /* Tombol */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: 0.2s; width: 100%;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+
+        /* === PANDUAN REPORT === */
+        .guide-step {
+            display: flex; gap: 12px; margin-bottom: 16px;
+        }
+        .step-num {
+            width: 24px; height: 24px; flex-shrink: 0;
+            background: rgba(34,158,217,0.2); color: var(--primary);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700;
+        }
+        .step-text { font-size: 13px; color: var(--text-muted); }
+        .step-text strong { color: var(--text-main); }
+        .step-text a { color: var(--primary); text-decoration: none; }
+        .step-text a:hover { text-decoration: underline; }
+
+        /* === TOAST === */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: var(--success); color: white;
+            padding: 12px 24px; border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+            opacity: 0; transition: 0.3s; pointer-events: none; z-index: 999;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        
+        /* Responsif */
+        @media (max-width: 480px) {
+            .card { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo-icon"><i class="fa-brands fa-telegram"></i></div>
+        <div class="header-text">
+            <h1>TeleGuard</h1>
+            <p>Portal Pelaporan Penipuan & Spam Telegram</p>
+        </div>
+    </header>
+
+    <!-- FORM LAPORAN -->
+    <div class="card">
+        <h2><i class="fa-solid fa-flag"></i> Formulir Laporan</h2>
+        <form id="reportForm">
+            <div class="form-group">
+                <label>Nama / Username Pelapor</label>
+                <input type="text" class="form-control" placeholder="Contoh: Budi (@budi123)" required>
+            </div>
+            <div class="form-group">
+                <label>ID / Username Akun Penipu</label>
+                <input type="text" class="form-control" placeholder="Contoh: @ScammerAtauID123" required>
+            </div>
+            <div class="form-group">
+                <label>Jenis Penipuan</label>
+                <select class="form-control" required>
+                    <option value="" disabled selected>Pilih jenis laporan...</option>
+                    <option value="spam">Spam Massal</option>
+                    <option value="scam">Penipuan Uang / Investasi Bodong</option>
+                    <option value="phishing">Phishing / Curi Data</option>
+                    <option value="impersonation">Menyamar Sebagai Pihak Resmi</option>
+                    <option value="other">Lainnya</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Kronologi / Deskripsi Kejadian</label>
+                <textarea class="form-control" placeholder="Jelaskan detail kejadian, termasuk tanggal, nominal kerugian (jika ada), dan modus penipuannya..." required></textarea>
+            </div>
+            
+            <!-- UPLOAD FOTO -->
+            <div class="form-group">
+                <label>Foto Bukti (Screenshot Chat / Bukti Transfer)</label>
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Klik untuk upload foto bukti</span>
+                </div>
+                <div class="upload-preview" id="uploadPreview">
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Kirim Laporan</button>
+        </form>
+    </div>
+
+    <!-- PANDUAN REPORT KE TELEGRAM -->
+    <div class="card">
+        <h2><i class="fa-solid fa-shield-halved"></i> Panduan Lapor Resmi Telegram</h2>
+        <div class="guide-step">
+            <div class="step-num">1</div>
+            <div class="step-text">Buka aplikasi Telegram, cari bot resmi <strong>@NoToScam</strong>.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-num">2</div>
+            <div class="step-text">Klik tombol <strong>Start</strong>, lalu pilih opsi <strong>"Report Impersonation"</strong> atau laporkan sesuai kategori.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-num">3</div>
+            <div class="step-text">Kirimkan detail akun penipu (username/ID) beserta bukti screenshot chat ke bot tersebut.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-num">4</div>
+            <div class="step-text">Alternatif lain, kirim email ke <a href="mailto:abuse@telegram.org">abuse@telegram.org</a> dengan subjek yang jelas dan lampirkan bukti.</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- TOAST NOTIF -->
+<div class="toast" id="toast">
+    <i class="fa-solid fa-circle-check"></i> Laporan berhasil dikirim!
+</div>
+
+<script>
+    // Preview Foto
+    function previewImage(event) {
+        const file = event.target.files[0];
+        const previewContainer = document.getElementById('uploadPreview');
+        const previewImg = document.getElementById('previewImg');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Handler Submit Form (Simulasi)
+    document.getElementById('reportForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Mencegah reload halaman
+
+        // Tampilkan Toast
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+
+        // Reset Form & Preview
+        this.reset();
+        document.getElementById('uploadPreview').style.display = 'none';
+        document.getElementById('previewImg').src = '';
+
+        // Sembunyikan Toast setelah 3 detik
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    });
+</script>
+
+</body>
+</html>
